@@ -2,6 +2,7 @@ services:
   - type: web
     name: shram-sangam-backend
     env: node
+    plan: free
     region: oregon
     branch: main
     buildCommand: cd backend && npm install
