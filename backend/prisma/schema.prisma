@@ -1,0 +1,530 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  WORKER
+  CSC_AGENT
+  BLOCK_ADMIN
+  SUPER_ADMIN
+}
+
+enum CSCStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WorkerStatus {
+  active
+  busy
+  inactive
+  suspended
+}
+
+enum WorkerApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  pending
+  assigned
+  ongoing
+  completed
+  cancelled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+}
+
+enum CustomerPaymentStatus {
+  unpaid
+  initiated
+  paid
+  failed
+}
+
+enum AttendanceRequestStatus {
+  REQUESTED
+  CONFIRMED
+  DISPUTED
+}
+
+enum PaymentTicketStatus {
+  OPEN
+  APPROVED
+  REJECTED
+  RESOLVED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  CANCELLED
+}
+
+enum ComplaintType {
+  absent
+  poor_quality
+  misconduct
+}
+
+enum ComplaintStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+enum OtpPurpose {
+  SIGNUP
+  LOGIN
+}
+
+model State {
+  id        String     @id @default(uuid()) @map("_id")
+  name      String     @unique
+  districts District[]
+
+  users     User[]     @relation("UserState")
+  customers Customer[] @relation("CustomerState")
+  workers   Worker[]   @relation("WorkerState")
+  orders    Order[]    @relation("OrderState")
+}
+
+model District {
+  id        String   @id @default(uuid()) @map("_id")
+  name      String
+  stateId   String
+  State     State    @relation(fields: [stateId], references: [id])
+  blocks    Block[]
+
+  users     User[]   @relation("UserDistrict")
+  customers Customer[] @relation("CustomerDistrict")
+  workers   Worker[] @relation("WorkerDistrict")
+  orders    Order[]  @relation("OrderDistrict")
+
+  @@index([stateId])
+  @@unique([name, stateId])
+}
+
+model Block {
+  id         String   @id @default(uuid()) @map("_id")
+  name       String
+  districtId String
+  District   District @relation(fields: [districtId], references: [id])
+
+  users      User[]   @relation("UserBlock")
+  customers  Customer[] @relation("CustomerBlock")
+  workers    Worker[] @relation("WorkerBlock")
+  orders     Order[]  @relation("OrderBlock")
+
+  @@index([districtId])
+  @@unique([name, districtId])
+}
+
+model User {
+  id             Int        @id @map("_id")
+  email          String?
+  phone          String?
+  password       String
+  role           Role
+  name           String?
+  address        String?
+  cscStatus      CSCStatus?
+
+  state          String?
+  district       String?
+  block          String?
+
+  stateId        String?
+  districtId     String?
+  blockId        String?
+
+  stateRef       State?     @relation("UserState", fields: [stateId], references: [id])
+  districtRef    District?  @relation("UserDistrict", fields: [districtId], references: [id])
+  blockRef       Block?     @relation("UserBlock", fields: [blockId], references: [id])
+
+  customer       Customer?
+  cscDocument    CscDocument?
+  otps           Otp[]
+  createdWorkers Worker[]   @relation("WorkerCreatedBy")
+  assignedOrderWorkerDays OrderWorkerDay[] @relation("OrderWorkerDayAssignedBy")
+  createdAttendanceRequests AttendanceRequest[] @relation("AttendanceRequestBy")
+  paymentTicketsRaised PaymentTicket[] @relation("PaymentTicketRaisedBy")
+  paymentTicketsReviewed PaymentTicket[] @relation("PaymentTicketReviewedBy")
+  paymentAuditLogsAuthored PaymentAuditLog[] @relation("PaymentAuditActor")
+  refundsCreated     OrderRefund[]   @relation("OrderRefundCreatedBy")
+  refundsUpdated     OrderRefund[]   @relation("OrderRefundUpdatedBy")
+
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([role])
+  @@index([email])
+  @@index([phone])
+  @@index([block])
+  @@index([blockId])
+}
+
+model CscDocument {
+  id                        Int      @id @map("_id")
+  userId                    Int      @unique
+  user                      User     @relation(fields: [userId], references: [id])
+  aadhaarUrl                String
+  licenseUrl                String?
+  verificationCertificateUrl String?
+  bankPassbookUrl           String?
+  cscIdOrVleCertificateUrl  String?
+  characterCertificateUrl   String?
+  submittedAt               DateTime @default(now())
+  reviewNote                String?
+  updatedAt                 DateTime @updatedAt
+}
+
+model Customer {
+  id         Int         @id @map("_id")
+  userId     Int         @unique
+  user       User        @relation(fields: [userId], references: [id])
+
+  state      String
+  district   String
+  block      String
+
+  stateId    String
+  districtId String
+  blockId    String
+
+  stateRef    State      @relation("CustomerState", fields: [stateId], references: [id])
+  districtRef District   @relation("CustomerDistrict", fields: [districtId], references: [id])
+  blockRef    Block      @relation("CustomerBlock", fields: [blockId], references: [id])
+
+  orders      Order[]
+  complaints  Complaint[]
+
+  @@index([block])
+  @@index([blockId])
+  @@index([districtId])
+  @@index([stateId])
+}
+
+model Worker {
+  id                  Int                  @id @map("_id")
+  name                String
+  phone               String               @unique
+  category            String
+
+  state               String
+  district            String
+  block               String
+
+  stateId             String
+  districtId          String
+  blockId             String
+
+  stateRef            State                @relation("WorkerState", fields: [stateId], references: [id])
+  districtRef         District             @relation("WorkerDistrict", fields: [districtId], references: [id])
+  blockRef            Block                @relation("WorkerBlock", fields: [blockId], references: [id])
+
+  status              WorkerStatus         @default(inactive)
+  approvalStatus      WorkerApprovalStatus @default(PENDING)
+  approvalNote        String?
+  isAvailable         Boolean              @default(false)
+  rating              Float                @default(4.5)
+  activeJobs          Int                  @default(0)
+  totalJobs           Int                  @default(0)
+  photoUrl            String?
+  aadhaarUrl          String?
+  bankUrl             String?
+  createdByCscAgentId Int?
+  createdBy           User?                @relation("WorkerCreatedBy", fields: [createdByCscAgentId], references: [id])
+  orderWorkers        OrderWorker[]
+  orderWorkerDays     OrderWorkerDay[]
+  attendances         Attendance[]
+  payments            Payment[]
+  complaints          Complaint[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([block])
+  @@index([blockId])
+  @@index([createdByCscAgentId])
+  @@index([category, blockId, status, isAvailable])
+  @@index([approvalStatus])
+}
+
+model Order {
+  id           Int         @id @map("_id")
+  customerId   Int
+  customer     Customer    @relation(fields: [customerId], references: [id])
+
+  category     String
+  workersCount Int
+  startDate    DateTime
+  durationDays Int
+  rate         Float
+  total        Float
+  status       OrderStatus @default(pending)
+  customerPaymentStatus CustomerPaymentStatus @default(unpaid)
+  customerPaymentOrderId String?
+  customerPaymentId String?
+  customerPaymentSignature String?
+  customerPaidAt DateTime?
+
+  state        String
+  district     String
+  block        String
+  serviceAddress String
+
+  stateId      String
+  districtId   String
+  blockId      String
+
+  stateRef     State       @relation("OrderState", fields: [stateId], references: [id])
+  districtRef  District    @relation("OrderDistrict", fields: [districtId], references: [id])
+  blockRef     Block       @relation("OrderBlock", fields: [blockId], references: [id])
+
+  orderWorkers OrderWorker[]
+  orderWorkerDays OrderWorkerDay[]
+  attendanceRequests AttendanceRequest[]
+  attendances  Attendance[]
+  payments     Payment[]
+  refunds      OrderRefund[]
+  complaints   Complaint[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status])
+  @@index([block])
+  @@index([blockId])
+  @@index([customerId])
+  @@index([customerPaymentOrderId])
+  @@index([customerPaymentId])
+  @@index([customerPaymentStatus, customerPaidAt])
+  @@index([blockId, customerPaymentStatus, customerPaidAt])
+}
+
+model OrderWorker {
+  id         Int      @id @map("_id")
+  orderId    Int
+  workerId   Int
+  order      Order    @relation(fields: [orderId], references: [id])
+  worker     Worker   @relation(fields: [workerId], references: [id])
+  assignedAt DateTime @default(now())
+  completed  Boolean  @default(false)
+
+  @@unique([orderId, workerId])
+  @@index([workerId])
+}
+
+model Attendance {
+  id                Int              @id @map("_id")
+  workerId          Int
+  orderId           Int
+  requestId         Int?
+  date              DateTime
+  status            AttendanceStatus
+  confirmed         Boolean          @default(false)
+  customerConfirmed Boolean?
+  worker            Worker           @relation(fields: [workerId], references: [id])
+  order             Order            @relation(fields: [orderId], references: [id])
+  attendanceRequest AttendanceRequest? @relation(fields: [requestId], references: [id])
+  payment           Payment?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([workerId, orderId, date])
+  @@index([requestId])
+  @@index([orderId, date])
+  @@index([workerId, date])
+}
+
+model Payment {
+  id                Int           @id @map("_id")
+  workerId          Int
+  orderId           Int
+  attendanceId      Int?          @unique
+  date              DateTime
+  amount            Float
+  status            PaymentStatus @default(pending)
+  verified          Boolean       @default(false)
+  adjustedByAdminId Int?
+  transactionRef    String?
+  transactionDate   DateTime?
+  paymentNote       String?
+  paidAt            DateTime?
+  lockedByAdmin     Boolean       @default(false)
+  lockedAt          DateTime?
+  lastEditedByAdminId Int?
+  lastEditReason    String?
+  worker            Worker        @relation(fields: [workerId], references: [id])
+  order             Order         @relation(fields: [orderId], references: [id])
+  attendance        Attendance?   @relation(fields: [attendanceId], references: [id])
+  tickets           PaymentTicket[]
+  auditLogs         PaymentAuditLog[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([workerId, date])
+  @@index([workerId, status, date])
+  @@index([status])
+  @@index([orderId])
+  @@index([orderId, status, date])
+}
+
+model OrderWorkerDay {
+  id            Int      @id @map("_id")
+  orderId       Int
+  workerId      Int
+  workDate      DateTime
+  isActive      Boolean  @default(true)
+  note          String?
+  removedReason String?
+  assignedById  Int?
+  order         Order    @relation(fields: [orderId], references: [id])
+  worker        Worker   @relation(fields: [workerId], references: [id])
+  assignedBy    User?    @relation("OrderWorkerDayAssignedBy", fields: [assignedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([orderId, workerId, workDate])
+  @@index([workerId, workDate, isActive])
+  @@index([orderId, workDate, isActive])
+}
+
+model AttendanceRequest {
+  id               Int                     @id @map("_id")
+  orderId          Int
+  date             DateTime
+  requestedById    Int
+  status           AttendanceRequestStatus @default(REQUESTED)
+  customerConfirmed Boolean?
+  customerFeedback String?
+  createdAt        DateTime                @default(now())
+  respondedAt      DateTime?
+  order            Order                   @relation(fields: [orderId], references: [id])
+  requestedBy      User                    @relation("AttendanceRequestBy", fields: [requestedById], references: [id])
+  attendances      Attendance[]
+
+  @@unique([orderId, date])
+  @@index([status, date])
+}
+
+model PaymentTicket {
+  id           Int               @id @map("_id")
+  paymentId    Int
+  raisedById   Int
+  reviewedById Int?
+  reason       String
+  status       PaymentTicketStatus @default(OPEN)
+  adminNote    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  payment      Payment           @relation(fields: [paymentId], references: [id])
+  raisedBy     User              @relation("PaymentTicketRaisedBy", fields: [raisedById], references: [id])
+  reviewedBy   User?             @relation("PaymentTicketReviewedBy", fields: [reviewedById], references: [id])
+  auditLogs    PaymentAuditLog[]
+
+  @@index([status, createdAt])
+  @@index([raisedById])
+}
+
+model PaymentAuditLog {
+  id         Int          @id @map("_id")
+  paymentId  Int?
+  actorId    Int
+  ticketId   Int?
+  action     String
+  comment    String?
+  beforeState Json?
+  afterState  Json?
+  metadata    Json?
+  createdAt  DateTime     @default(now())
+  payment    Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  actor      User         @relation("PaymentAuditActor", fields: [actorId], references: [id])
+  ticket     PaymentTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([ticketId])
+}
+
+model OrderRefund {
+  id             Int          @id @map("_id")
+  orderId        Int
+  amount         Float
+  reason         String
+  note           String?
+  status         RefundStatus @default(PROCESSED)
+  transactionRef String?
+  refundedAt     DateTime?
+  createdById    Int
+  updatedById    Int?
+  order          Order        @relation(fields: [orderId], references: [id])
+  createdBy      User         @relation("OrderRefundCreatedBy", fields: [createdById], references: [id])
+  updatedBy      User?        @relation("OrderRefundUpdatedBy", fields: [updatedById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([orderId, createdAt])
+  @@index([status, refundedAt])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model Complaint {
+  id         Int             @id @map("_id")
+  customerId Int
+  orderId    Int
+  workerId   Int?
+  type       ComplaintType
+  details    String
+  status     ComplaintStatus @default(OPEN)
+  resolution String?
+  customer   Customer        @relation(fields: [customerId], references: [id])
+  order      Order           @relation(fields: [orderId], references: [id])
+  worker     Worker?         @relation(fields: [workerId], references: [id])
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status])
+  @@index([orderId])
+  @@index([customerId])
+}
+
+model Otp {
+  id        Int        @id @map("_id")
+  email     String?
+  phone     String?
+  code      String
+  purpose   OtpPurpose
+  expiresAt DateTime
+  consumedAt DateTime?
+  userId    Int?
+  user      User?      @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+
+  @@index([email, purpose, createdAt])
+  @@index([phone, purpose, createdAt])
+}
+
+model Counter {
+  id        String   @id @map("_id")
+  value     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,24 @@
+
+> blue-collar-backend@1.0.0 predev
+> prisma generate
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 538ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+
+> blue-collar-backend@1.0.0 dev
+> nodemon src/index.js
+
+[33m[nodemon] 2.0.22[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): src\**\* .env[39m
+[33m[nodemon] watching extensions: js,json[39m
+[32m[nodemon] starting `node src/index.js`[39m
+Blue Collar backend listening on http://localhost:4000
+MongoDB connection verified.

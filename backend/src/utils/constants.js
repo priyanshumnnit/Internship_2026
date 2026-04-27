@@ -1,0 +1,100 @@
+const LIST_PAGE_LIMIT = 20;
+const OTP_CODE = '123456';
+const OTP_TTL_MINUTES = 5;
+const CSC_EMAIL_DOMAIN = '@csc.gov.in';
+
+const ORDER_STATUS = {
+  PENDING: 'pending',
+  ASSIGNED: 'assigned',
+  ONGOING: 'ongoing',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+};
+
+const WORKER_STATUS = {
+  ACTIVE: 'active',
+  BUSY: 'busy',
+  INACTIVE: 'inactive',
+  SUSPENDED: 'suspended',
+};
+
+const WORKER_APPROVAL_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+};
+
+const CSC_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+};
+
+const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed',
+};
+
+const CUSTOMER_PAYMENT_STATUS = {
+  UNPAID: 'unpaid',
+  INITIATED: 'initiated',
+  PAID: 'paid',
+  FAILED: 'failed',
+};
+
+const ATTENDANCE_REQUEST_STATUS = {
+  REQUESTED: 'REQUESTED',
+  CONFIRMED: 'CONFIRMED',
+  DISPUTED: 'DISPUTED',
+};
+
+const PAYMENT_TICKET_STATUS = {
+  OPEN: 'OPEN',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RESOLVED: 'RESOLVED',
+};
+
+const REFUND_STATUS = {
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  CANCELLED: 'CANCELLED',
+};
+
+const ATTENDANCE_STATUS = {
+  PRESENT: 'present',
+  ABSENT: 'absent',
+};
+
+const COMPLAINT_TYPE = {
+  ABSENT: 'absent',
+  POOR_QUALITY: 'poor_quality',
+  MISCONDUCT: 'misconduct',
+};
+
+const CATEGORY_RATES = {
+  plumbing: 1200,
+  electrician: 1300,
+  painting: 1000,
+  cleaning: 900,
+};
+
+module.exports = {
+  LIST_PAGE_LIMIT,
+  OTP_CODE,
+  OTP_TTL_MINUTES,
+  CSC_EMAIL_DOMAIN,
+  ORDER_STATUS,
+  WORKER_STATUS,
+  WORKER_APPROVAL_STATUS,
+  CSC_STATUS,
+  PAYMENT_STATUS,
+  CUSTOMER_PAYMENT_STATUS,
+  ATTENDANCE_REQUEST_STATUS,
+  PAYMENT_TICKET_STATUS,
+  REFUND_STATUS,
+  ATTENDANCE_STATUS,
+  COMPLAINT_TYPE,
+  CATEGORY_RATES,
+};
