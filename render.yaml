@@ -1,0 +1,43 @@
+services:
+  - type: web_service
+    name: shram-sangam-backend
+    env: node
+    region: oregon
+    branch: main
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MONGO_DATABASE_URL
+        fromSecret: MONGO_DATABASE_URL
+      - key: JWT_ACCESS_SECRET
+        fromSecret: JWT_ACCESS_SECRET
+      - key: JWT_REFRESH_SECRET
+        fromSecret: JWT_REFRESH_SECRET
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: SMTP_HOST
+        fromSecret: SMTP_HOST
+      - key: SMTP_PORT
+        fromSecret: SMTP_PORT
+      - key: SMTP_SERVICE
+        fromSecret: SMTP_SERVICE
+      - key: SMTP_USER
+        fromSecret: SMTP_USER
+      - key: SMTP_PASS
+        fromSecret: SMTP_PASS
+      - key: SMTP_MAIL
+        fromSecret: SMTP_MAIL
+      - key: RAZORPAY_KEY_ID
+        fromSecret: RAZORPAY_KEY_ID
+      - key: RAZORPAY_KEY_SECRET
+        fromSecret: RAZORPAY_KEY_SECRET
+      - key: CLOUDINARY_CLOUD_NAME
+        fromSecret: CLOUDINARY_CLOUD_NAME
+      - key: CLOUDINARY_API_KEY
+        fromSecret: CLOUDINARY_API_KEY
+      - key: CLOUDINARY_API_SECRET
+        fromSecret: CLOUDINARY_API_SECRET

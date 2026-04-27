@@ -119,6 +119,48 @@ Run frontend:
 npm run dev
 ```
 
+## Deployment
+
+This repository is ready for a split deployment:
+
+- **Frontend** on Vercel from the `frontend/` directory
+- **Backend** on Render using the `backend/` directory
+
+### Vercel frontend
+
+1. Create a new Vercel project from GitHub.
+2. Set the project root to `frontend`.
+3. Use:
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+4. Add environment variable:
+   - `VITE_API_BASE=https://<your-backend-url>/api`
+
+### Render backend
+
+1. Create a new Render Web Service from branch `main`.
+2. Use:
+   - Build Command: `cd backend && npm install`
+   - Start Command: `cd backend && npm start`
+   - Health Check Path: `/health`
+3. Add these secrets:
+   - `MONGO_DATABASE_URL`
+   - `JWT_ACCESS_SECRET`
+   - `JWT_REFRESH_SECRET`
+   - `SMTP_HOST`
+   - `SMTP_PORT`
+   - `SMTP_SERVICE`
+   - `SMTP_USER`
+   - `SMTP_PASS`
+   - `SMTP_MAIL`
+   - `RAZORPAY_KEY_ID`
+   - `RAZORPAY_KEY_SECRET`
+   - `CLOUDINARY_CLOUD_NAME`
+   - `CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
+
+If you prefer Railway instead of Render, create a Node service from the `backend/` folder and provide the same env vars.
+
 Build frontend:
 
 ```bash
