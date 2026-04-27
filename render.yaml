@@ -10,34 +10,34 @@ services:
     autoDeploy: true
     envVars:
       - key: MONGO_DATABASE_URL
-        fromSecret: MONGO_DATABASE_URL
+        sync: false
       - key: JWT_ACCESS_SECRET
-        fromSecret: JWT_ACCESS_SECRET
+        sync: false
       - key: JWT_REFRESH_SECRET
-        fromSecret: JWT_REFRESH_SECRET
+        sync: false
       - key: JWT_ACCESS_EXPIRES_IN
         value: 15m
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
       - key: SMTP_HOST
-        fromSecret: SMTP_HOST
+        sync: false
       - key: SMTP_PORT
-        fromSecret: SMTP_PORT
+        sync: false
       - key: SMTP_SERVICE
-        fromSecret: SMTP_SERVICE
+        sync: false
       - key: SMTP_USER
-        fromSecret: SMTP_USER
+        sync: false
       - key: SMTP_PASS
-        fromSecret: SMTP_PASS
+        sync: false
       - key: SMTP_MAIL
-        fromSecret: SMTP_MAIL
+        sync: false
       - key: RAZORPAY_KEY_ID
-        fromSecret: RAZORPAY_KEY_ID
+        sync: false
       - key: RAZORPAY_KEY_SECRET
-        fromSecret: RAZORPAY_KEY_SECRET
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
-        fromSecret: CLOUDINARY_CLOUD_NAME
+        sync: false
       - key: CLOUDINARY_API_KEY
-        fromSecret: CLOUDINARY_API_KEY
+        sync: false
       - key: CLOUDINARY_API_SECRET
-        fromSecret: CLOUDINARY_API_SECRET
+        sync: false
